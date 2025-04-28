@@ -1,1 +1,4 @@
+flask==2.0.2
+requests==2.26.0
+gunicorn==20.1.0
 
