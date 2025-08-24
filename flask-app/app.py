@@ -12,7 +12,9 @@ def go():
     url = request.args.get('url')
     if not url:
         return "Missing URL!", 400
-    # Directly forward to proxy
+   # Automatically add https:// if missing
+    if not url.startswith("http://") and not url.startswith("https://"):
+        url = "https://" + url
     return proxy(url)
 
 @app.route('/proxy', methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"])
