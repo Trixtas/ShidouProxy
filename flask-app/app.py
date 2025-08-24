@@ -12,7 +12,7 @@ def go():
     url = request.args.get('url')
     if url:
         # Internally call the proxy function instead of redirecting
-        with app.test_request_context(f'/proxy?url={url}', method='GET', headers=request.headers):
+with app.test_request_context(f'/proxy?url={url}', method='GET', headers=dict(request.headers)):
             return proxy()
     else:
         return "Missing URL!", 400
