@@ -11,23 +11,15 @@ def home():
 def go():
     url = request.args.get('url')
     if url:
-        # Internally call the proxy function instead of redirecting
-with app.test_request_context(f'/proxy?url={url}', method='GET', headers=dict(request.headers)):
-            return proxy()
+        return proxy_with_url(url)
     else:
         return "Missing URL!", 400
 
-@app.route('/proxy', methods=['GET', 'POST', 'PUT', 'DELETE'])
-def proxy():
-    target_url = request.args.get('url')
-    if not target_url:
-        return "Missing 'url' parameter", 400
-
+def proxy_with_url(url):
     try:
-        # Send the request to the target URL
         resp = requests.request(
             method=request.method,
-            url=target_url,
+            url=url,
             headers={key: value for (key, value) in request.headers.items() if key.lower() != 'host'},
             data=request.get_data(),
             cookies=request.cookies,
@@ -40,12 +32,17 @@ def proxy():
         headers = [(name, value) for (name, value) in resp.raw.headers.items()
                    if name.lower() not in excluded_headers]
 
-        # Return the response to the client
-        response = Response(resp.content, resp.status_code, headers)
-        return response
+        return Response(resp.content, resp.status_code, headers)
 
     except Exception as e:
         return f"Error: {str(e)}", 500
+
+@app.route('/proxy', methods=['GET', 'POST', 'PUT', 'DELETE'])
+def proxy():
+    target_url = request.args.get('url')
+    if not target_url:
+        return "Missing 'url' parameter", 400
+    return proxy_with_url(target_url)
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
